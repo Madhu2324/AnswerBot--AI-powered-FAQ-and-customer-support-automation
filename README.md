@@ -1,90 +1,63 @@
-# mime
+# es-object-atoms <sup>[![Version Badge][npm-version-svg]][package-url]</sup>
 
-Comprehensive MIME type mapping API based on mime-db module.
+[![github actions][actions-image]][actions-url]
+[![coverage][codecov-image]][codecov-url]
+[![License][license-image]][license-url]
+[![Downloads][downloads-image]][downloads-url]
 
-## Install
+[![npm badge][npm-badge-png]][package-url]
 
-Install with [npm](http://github.com/isaacs/npm):
+ES Object-related atoms: Object, ToObject, RequireObjectCoercible.
 
-    npm install mime
-
-## Contributing / Testing
-
-    npm run test
-
-## Command Line
-
-    mime [path_string]
-
-E.g.
-
-    > mime scripts/jquery.js
-    application/javascript
-
-## API - Queries
-
-### mime.lookup(path)
-Get the mime type associated with a file, if no mime type is found `application/octet-stream` is returned. Performs a case-insensitive lookup using the extension in `path` (the substring after the last '/' or '.').  E.g.
+## Example
 
 ```js
-var mime = require('mime');
+const assert = require('assert');
 
-mime.lookup('/path/to/file.txt');         // => 'text/plain'
-mime.lookup('file.txt');                  // => 'text/plain'
-mime.lookup('.TXT');                      // => 'text/plain'
-mime.lookup('htm');                       // => 'text/html'
+const $Object = require('es-object-atoms');
+const isObject = require('es-object-atoms/isObject');
+const ToObject = require('es-object-atoms/ToObject');
+const RequireObjectCoercible = require('es-object-atoms/RequireObjectCoercible');
+
+assert.equal($Object, Object);
+assert.throws(() => ToObject(null), TypeError);
+assert.throws(() => ToObject(undefined), TypeError);
+assert.throws(() => RequireObjectCoercible(null), TypeError);
+assert.throws(() => RequireObjectCoercible(undefined), TypeError);
+
+assert.equal(isObject(undefined), false);
+assert.equal(isObject(null), false);
+assert.equal(isObject({}), true);
+assert.equal(isObject([]), true);
+assert.equal(isObject(function () {}), true);
+
+assert.deepEqual(RequireObjectCoercible(true), true);
+assert.deepEqual(ToObject(true), Object(true));
+
+const obj = {};
+assert.equal(RequireObjectCoercible(obj), obj);
+assert.equal(ToObject(obj), obj);
 ```
 
-### mime.default_type
-Sets the mime type returned when `mime.lookup` fails to find the extension searched for. (Default is `application/octet-stream`.)
+## Tests
+Simply clone the repo, `npm install`, and run `npm test`
 
-### mime.extension(type)
-Get the default extension for `type`
+## Security
 
-```js
-mime.extension('text/html');                 // => 'html'
-mime.extension('application/octet-stream');  // => 'bin'
-```
+Please email [@ljharb](https://github.com/ljharb) or see https://tidelift.com/security if you have a potential security vulnerability to report.
 
-### mime.charsets.lookup()
-
-Map mime-type to charset
-
-```js
-mime.charsets.lookup('text/plain');        // => 'UTF-8'
-```
-
-(The logic for charset lookups is pretty rudimentary.  Feel free to suggest improvements.)
-
-## API - Defining Custom Types
-
-Custom type mappings can be added on a per-project basis via the following APIs.
-
-### mime.define()
-
-Add custom mime/extension mappings
-
-```js
-mime.define({
-    'text/x-some-format': ['x-sf', 'x-sft', 'x-sfml'],
-    'application/x-my-type': ['x-mt', 'x-mtt'],
-    // etc ...
-});
-
-mime.lookup('x-sft');                 // => 'text/x-some-format'
-```
-
-The first entry in the extensions array is returned by `mime.extension()`. E.g.
-
-```js
-mime.extension('text/x-some-format'); // => 'x-sf'
-```
-
-### mime.load(filepath)
-
-Load mappings from an Apache ".types" format file
-
-```js
-mime.load('./my_project.types');
-```
-The .types file format is simple -  See the `types` dir for examples.
+[package-url]: https://npmjs.org/package/es-object-atoms
+[npm-version-svg]: https://versionbadg.es/ljharb/es-object-atoms.svg
+[deps-svg]: https://david-dm.org/ljharb/es-object-atoms.svg
+[deps-url]: https://david-dm.org/ljharb/es-object-atoms
+[dev-deps-svg]: https://david-dm.org/ljharb/es-object-atoms/dev-status.svg
+[dev-deps-url]: https://david-dm.org/ljharb/es-object-atoms#info=devDependencies
+[npm-badge-png]: https://nodei.co/npm/es-object-atoms.png?downloads=true&stars=true
+[license-image]: https://img.shields.io/npm/l/es-object-atoms.svg
+[license-url]: LICENSE
+[downloads-image]: https://img.shields.io/npm/dm/es-object.svg
+[downloads-url]: https://npm-stat.com/charts.html?package=es-object-atoms
+[codecov-image]: https://codecov.io/gh/ljharb/es-object-atoms/branch/main/graphs/badge.svg
+[codecov-url]: https://app.codecov.io/gh/ljharb/es-object-atoms/
+[actions-image]: https://img.shields.io/endpoint?url=https://github-actions-badge-u3jn4tfpocch.runkit.sh/ljharb/es-object-atoms
+[actions-url]: https://github.com/ljharb/es-object-atoms/actions
