@@ -1,78 +1,148 @@
-# ansi-regex
+# p-retry
 
-> Regular expression for matching [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
+> Retry a promise-returning or async function
 
+It does exponential backoff and supports custom retry strategies for failed operations.
 
 ## Install
 
 ```
-$ npm install ansi-regex
+$ npm install p-retry
 ```
-
 
 ## Usage
 
 ```js
-const ansiRegex = require('ansi-regex');
+const pRetry = require('p-retry');
+const fetch = require('node-fetch');
 
-ansiRegex().test('\u001B[4mcake\u001B[0m');
-//=> true
+const run = async () => {
+	const response = await fetch('https://sindresorhus.com/unicorn');
 
-ansiRegex().test('cake');
-//=> false
+	// Abort retrying if the resource doesn't exist
+	if (response.status === 404) {
+		throw new pRetry.AbortError(response.statusText);
+	}
 
-'\u001B[4mcake\u001B[0m'.match(ansiRegex());
-//=> ['\u001B[4m', '\u001B[0m']
+	return response.blob();
+};
 
-'\u001B[4mcake\u001B[0m'.match(ansiRegex({onlyFirst: true}));
-//=> ['\u001B[4m']
-
-'\u001B]8;;https://github.com\u0007click\u001B]8;;\u0007'.match(ansiRegex());
-//=> ['\u001B]8;;https://github.com\u0007', '\u001B]8;;\u0007']
+(async () => {
+	console.log(await pRetry(run, {retries: 5}));
+})();
 ```
-
 
 ## API
 
-### ansiRegex(options?)
+### pRetry(input, options?)
 
-Returns a regex for matching ANSI escape codes.
+Returns a `Promise` that is fulfilled when calling `input` returns a fulfilled promise. If calling `input` returns a rejected promise, `input` is called again until the maximum number of retries is reached. It then rejects with the last rejection reason.
+
+
+Does not retry on most `TypeErrors`, with the exception of network errors. This is done on a best case basis as different browsers have different [messages](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#Checking_that_the_fetch_was_successful) to indicate this. See [whatwg/fetch#526 (comment)](https://github.com/whatwg/fetch/issues/526#issuecomment-554604080)
+
+
+#### input
+
+Type: `Function`
+
+Receives the current attempt number as the first argument and is expected to return a `Promise` or any value.
 
 #### options
 
 Type: `object`
 
-##### onlyFirst
+Options are passed to the [`retry`](https://github.com/tim-kos/node-retry#retryoperationoptions) module.
 
-Type: `boolean`<br>
-Default: `false` *(Matches any ANSI escape codes in a string)*
+##### onFailedAttempt(error)
 
-Match only the first ANSI escape.
+Type: `Function`
 
+Callback invoked on each retry. Receives the error thrown by `input` as the first argument with properties `attemptNumber` and `retriesLeft` which indicate the current attempt number and the number of attempts left, respectively.
 
-## FAQ
+```js
+const run = async () => {
+	const response = await fetch('https://sindresorhus.com/unicorn');
 
-### Why do you test for codes not in the ECMA 48 standard?
+	if (!response.ok) {
+		throw new Error(response.statusText);
+	}
 
-Some of the codes we run as a test are codes that we acquired finding various lists of non-standard or manufacturer specific codes. We test for both standard and non-standard codes, as most of them follow the same or similar format and can be safely matched in strings without the risk of removing actual string content. There are a few non-standard control codes that do not follow the traditional format (i.e. they end in numbers) thus forcing us to exclude them from the test because we cannot reliably match them.
+	return response.json();
+};
 
-On the historical side, those ECMA standards were established in the early 90's whereas the VT100, for example, was designed in the mid/late 70's. At that point in time, control codes were still pretty ungoverned and engineers used them for a multitude of things, namely to activate hardware ports that may have been proprietary. Somewhere else you see a similar 'anarchy' of codes is in the x86 architecture for processors; there are a ton of "interrupts" that can mean different things on certain brands of processors, most of which have been phased out.
+(async () => {
+	const result = await pRetry(run, {
+		onFailedAttempt: error => {
+			console.log(`Attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left.`);
+			// 1st request => Attempt 1 failed. There are 4 retries left.
+			// 2nd request => Attempt 2 failed. There are 3 retries left.
+			// …
+		},
+		retries: 5
+	});
 
+	console.log(result);
+})();
+```
 
-## Maintainers
+The `onFailedAttempt` function can return a promise. For example, you can do some async logging:
 
-- [Sindre Sorhus](https://github.com/sindresorhus)
-- [Josh Junon](https://github.com/qix-)
+```js
+const pRetry = require('p-retry');
+const logger = require('./some-logger');
 
+const run = async () => { … };
 
----
+(async () => {
+	const result = await pRetry(run, {
+		onFailedAttempt: async error => {
+			await logger.log(error);
+		}
+	});
+})();
+```
 
-<div align="center">
-	<b>
-		<a href="https://tidelift.com/subscription/pkg/npm-ansi-regex?utm_source=npm-ansi-regex&utm_medium=referral&utm_campaign=readme">Get professional support for this package with a Tidelift subscription</a>
-	</b>
-	<br>
-	<sub>
-		Tidelift helps make open source sustainable for maintainers while giving companies<br>assurances about security, maintenance, and licensing for their dependencies.
-	</sub>
-</div>
+If the `onFailedAttempt` function throws, all retries will be aborted and the original promise will reject with the thrown error.
+
+### pRetry.AbortError(message)
+### pRetry.AbortError(error)
+
+Abort retrying and reject the promise.
+
+### message
+
+Type: `string`
+
+Error message.
+
+### error
+
+Type: `Error`
+
+Custom error.
+
+## Tip
+
+You can pass arguments to the function being retried by wrapping it in an inline arrow function:
+
+```js
+const pRetry = require('p-retry');
+
+const run = async emoji => {
+	// …
+};
+
+(async () => {
+	// Without arguments
+	await pRetry(run, {retries: 5});
+
+	// With arguments
+	await pRetry(() => run('🦄'), {retries: 5});
+})();
+```
+
+## Related
+
+- [p-timeout](https://github.com/sindresorhus/p-timeout) - Timeout a promise after a specified amount of time
+- [More…](https://github.com/sindresorhus/promise-fun)
