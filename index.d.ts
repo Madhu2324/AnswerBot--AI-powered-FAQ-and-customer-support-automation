@@ -1,23 +1,37 @@
-declare module 'emoji-regex' {
-    function emojiRegex(): RegExp;
+declare namespace ansiRegex {
+	interface Options {
+		/**
+		Match only the first ANSI escape.
 
-    export default emojiRegex;
+		@default false
+		*/
+		onlyFirst: boolean;
+	}
 }
 
-declare module 'emoji-regex/text' {
-    function emojiRegex(): RegExp;
+/**
+Regular expression for matching ANSI escape codes.
 
-    export default emojiRegex;
-}
+@example
+```
+import ansiRegex = require('ansi-regex');
 
-declare module 'emoji-regex/es2015' {
-    function emojiRegex(): RegExp;
+ansiRegex().test('\u001B[4mcake\u001B[0m');
+//=> true
 
-    export default emojiRegex;
-}
+ansiRegex().test('cake');
+//=> false
 
-declare module 'emoji-regex/es2015/text' {
-    function emojiRegex(): RegExp;
+'\u001B[4mcake\u001B[0m'.match(ansiRegex());
+//=> ['\u001B[4m', '\u001B[0m']
 
-    export default emojiRegex;
-}
+'\u001B[4mcake\u001B[0m'.match(ansiRegex({onlyFirst: true}));
+//=> ['\u001B[4m']
+
+'\u001B]8;;https://github.com\u0007click\u001B]8;;\u0007'.match(ansiRegex());
+//=> ['\u001B]8;;https://github.com\u0007', '\u001B]8;;\u0007']
+```
+*/
+declare function ansiRegex(options?: ansiRegex.Options): RegExp;
+
+export = ansiRegex;
