@@ -1,116 +1,141 @@
+export declare const BASE_PATH = "/computeMetadata/v1";
+export declare const HOST_ADDRESS = "http://169.254.169.254";
+export declare const SECONDARY_HOST_ADDRESS = "http://metadata.google.internal.";
+export declare const HEADER_NAME = "Metadata-Flavor";
+export declare const HEADER_VALUE = "Google";
+export declare const HEADERS: Readonly<{
+    "Metadata-Flavor": "Google";
+}>;
 /**
- * License for programmatically and manually incorporated
- * documentation aka. `JSDoc` from https://github.com/nodejs/node/tree/master/doc
+ * Metadata server detection override options.
  *
- * Copyright Node.js contributors. All rights reserved.
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to
- * deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
+ * Available via `process.env.METADATA_SERVER_DETECTION`.
  */
-
-// NOTE: These definitions support Node.js and TypeScript 5.8+.
-
-// Reference required TypeScript libraries:
-/// <reference lib="es2020" />
-/// <reference lib="esnext.disposable" />
-/// <reference lib="esnext.float16" />
-
-// Definitions for Node.js modules specific to TypeScript 5.7+:
-/// <reference path="globals.typedarray.d.ts" />
-/// <reference path="buffer.buffer.d.ts" />
-
-// Definitions for Node.js modules that are not specific to any version of TypeScript:
-/// <reference path="globals.d.ts" />
-/// <reference path="web-globals/abortcontroller.d.ts" />
-/// <reference path="web-globals/blob.d.ts" />
-/// <reference path="web-globals/console.d.ts" />
-/// <reference path="web-globals/crypto.d.ts" />
-/// <reference path="web-globals/domexception.d.ts" />
-/// <reference path="web-globals/encoding.d.ts" />
-/// <reference path="web-globals/events.d.ts" />
-/// <reference path="web-globals/fetch.d.ts" />
-/// <reference path="web-globals/importmeta.d.ts" />
-/// <reference path="web-globals/messaging.d.ts" />
-/// <reference path="web-globals/navigator.d.ts" />
-/// <reference path="web-globals/performance.d.ts" />
-/// <reference path="web-globals/storage.d.ts" />
-/// <reference path="web-globals/streams.d.ts" />
-/// <reference path="web-globals/timers.d.ts" />
-/// <reference path="web-globals/url.d.ts" />
-/// <reference path="assert.d.ts" />
-/// <reference path="assert/strict.d.ts" />
-/// <reference path="async_hooks.d.ts" />
-/// <reference path="buffer.d.ts" />
-/// <reference path="child_process.d.ts" />
-/// <reference path="cluster.d.ts" />
-/// <reference path="console.d.ts" />
-/// <reference path="constants.d.ts" />
-/// <reference path="crypto.d.ts" />
-/// <reference path="dgram.d.ts" />
-/// <reference path="diagnostics_channel.d.ts" />
-/// <reference path="dns.d.ts" />
-/// <reference path="dns/promises.d.ts" />
-/// <reference path="domain.d.ts" />
-/// <reference path="events.d.ts" />
-/// <reference path="ffi.d.ts" />
-/// <reference path="fs.d.ts" />
-/// <reference path="fs/promises.d.ts" />
-/// <reference path="http.d.ts" />
-/// <reference path="http2.d.ts" />
-/// <reference path="https.d.ts" />
-/// <reference path="inspector.d.ts" />
-/// <reference path="inspector.generated.d.ts" />
-/// <reference path="inspector/promises.d.ts" />
-/// <reference path="module.d.ts" />
-/// <reference path="net.d.ts" />
-/// <reference path="os.d.ts" />
-/// <reference path="path.d.ts" />
-/// <reference path="path/posix.d.ts" />
-/// <reference path="path/win32.d.ts" />
-/// <reference path="perf_hooks.d.ts" />
-/// <reference path="process.d.ts" />
-/// <reference path="punycode.d.ts" />
-/// <reference path="querystring.d.ts" />
-/// <reference path="quic.d.ts" />
-/// <reference path="readline.d.ts" />
-/// <reference path="readline/promises.d.ts" />
-/// <reference path="repl.d.ts" />
-/// <reference path="sea.d.ts" />
-/// <reference path="sqlite.d.ts" />
-/// <reference path="stream.d.ts" />
-/// <reference path="stream/consumers.d.ts" />
-/// <reference path="stream/iter.d.ts" />
-/// <reference path="stream/promises.d.ts" />
-/// <reference path="stream/web.d.ts" />
-/// <reference path="string_decoder.d.ts" />
-/// <reference path="test.d.ts" />
-/// <reference path="test/reporters.d.ts" />
-/// <reference path="timers.d.ts" />
-/// <reference path="timers/promises.d.ts" />
-/// <reference path="tls.d.ts" />
-/// <reference path="trace_events.d.ts" />
-/// <reference path="tty.d.ts" />
-/// <reference path="url.d.ts" />
-/// <reference path="util.d.ts" />
-/// <reference path="util/types.d.ts" />
-/// <reference path="v8.d.ts" />
-/// <reference path="vfs.d.ts" />
-/// <reference path="vm.d.ts" />
-/// <reference path="wasi.d.ts" />
-/// <reference path="worker_threads.d.ts" />
-/// <reference path="zlib.d.ts" />
-/// <reference path="zlib/iter.d.ts" />
+export declare const METADATA_SERVER_DETECTION: Readonly<{
+    'assume-present': "don't try to ping the metadata server, but assume it's present";
+    none: "don't try to ping the metadata server, but don't try to use it either";
+    'bios-only': "treat the result of a BIOS probe as canonical (don't fall back to pinging)";
+    'ping-only': "skip the BIOS probe, and go straight to pinging";
+}>;
+type HeadersInit = ConstructorParameters<typeof Headers>[0];
+export interface Options {
+    params?: {
+        [index: string]: string;
+    };
+    property?: string;
+    headers?: HeadersInit;
+}
+export interface MetadataAccessor {
+    /**
+     *
+     * @example
+     *
+     * // equivalent to `project('project-id')`;
+     * const metadataKey = 'project/project-id';
+     */
+    metadataKey: string;
+    params?: Options['params'];
+    headers?: Options['headers'];
+    noResponseRetries?: number;
+    fastFail?: boolean;
+}
+export type BulkResults<T extends readonly MetadataAccessor[]> = {
+    [key in T[number]['metadataKey']]: ReturnType<JSON['parse']>;
+};
+/**
+ * Obtain metadata for the current GCE instance.
+ *
+ * @see {@link https://cloud.google.com/compute/docs/metadata/predefined-metadata-keys}
+ *
+ * @example
+ * ```
+ * const serviceAccount: {} = await instance('service-accounts/');
+ * const serviceAccountEmail: string = await instance('service-accounts/default/email');
+ * ```
+ */
+export declare function instance<T = any>(options?: string | Options): Promise<T>;
+/**
+ * Obtain metadata for the current GCP project.
+ *
+ * @see {@link https://cloud.google.com/compute/docs/metadata/predefined-metadata-keys}
+ *
+ * @example
+ * ```
+ * const projectId: string = await project('project-id');
+ * const numericProjectId: number = await project('numeric-project-id');
+ * ```
+ */
+export declare function project<T = any>(options?: string | Options): Promise<T>;
+/**
+ * Obtain metadata for the current universe.
+ *
+ * @see {@link https://cloud.google.com/compute/docs/metadata/predefined-metadata-keys}
+ *
+ * @example
+ * ```
+ * const universeDomain: string = await universe('universe-domain');
+ * ```
+ */
+export declare function universe<T>(options?: string | Options): Promise<T>;
+/**
+ * Retrieve metadata items in parallel.
+ *
+ * @see {@link https://cloud.google.com/compute/docs/metadata/predefined-metadata-keys}
+ *
+ * @example
+ * ```
+ * const data = await bulk([
+ *   {
+ *     metadataKey: 'instance',
+ *   },
+ *   {
+ *     metadataKey: 'project/project-id',
+ *   },
+ * ] as const);
+ *
+ * // data.instance;
+ * // data['project/project-id'];
+ * ```
+ *
+ * @param properties The metadata properties to retrieve
+ * @returns The metadata in `metadatakey:value` format
+ */
+export declare function bulk<T extends readonly Readonly<MetadataAccessor>[], R extends BulkResults<T> = BulkResults<T>>(properties: T): Promise<R>;
+/**
+ * Determine if the metadata server is currently available.
+ */
+export declare function isAvailable(): Promise<boolean>;
+/**
+ * reset the memoized isAvailable() lookup.
+ */
+export declare function resetIsAvailableCache(): void;
+/**
+ * A cache for the detected GCP Residency.
+ */
+export declare let gcpResidencyCache: boolean | null;
+/**
+ * Detects GCP Residency.
+ * Caches results to reduce costs for subsequent calls.
+ *
+ * @see setGCPResidency for setting
+ */
+export declare function getGCPResidency(): boolean;
+/**
+ * Sets the detected GCP Residency.
+ * Useful for forcing metadata server detection behavior.
+ *
+ * Set `null` to autodetect the environment (default behavior).
+ * @see getGCPResidency for getting
+ */
+export declare function setGCPResidency(value?: boolean | null): void;
+/**
+ * Obtain the timeout for requests to the metadata server.
+ *
+ * In certain environments and conditions requests can take longer than
+ * the default timeout to complete. This function will determine the
+ * appropriate timeout based on the environment.
+ *
+ * @returns {number} a request timeout duration in milliseconds.
+ */
+export declare function requestTimeout(): number;
+export * from './gcp-residency';
